@@ -1,9 +1,6 @@
 require 'rails'
 require 'ember/rails/version'
 require 'ember/rails/engine'
-require 'ember/source'
-require 'ember/data/source'
-require 'handlebars/source'
 
 module Ember
   module Rails
@@ -22,19 +19,6 @@ module Ember
 
       initializer "ember_rails.setup_vendor", :after => "ember_rails.setup", :group => :all do |app|
         variant = app.config.ember.variant || (::Rails.env.production? ? :production : :development)
-
-        # Copy over the desired ember, ember-data, and handlebars bundled in
-        # ember-source, ember-data-source, and handlebars-source to a tmp folder.
-        tmp_path = app.root.join("tmp/ember-rails")
-        ext = variant == :production ? ".prod.js" : ".js"
-        FileUtils.mkdir_p(tmp_path)
-        FileUtils.cp(::Ember::Source.bundled_path_for("ember#{ext}"), tmp_path.join("ember.js"))
-        FileUtils.cp(::Ember::Data::Source.bundled_path_for("ember-data#{ext}"), tmp_path.join("ember-data.js"))
-        app.assets.append_path(tmp_path)
-
-        # Make the handlebars.js and handlebars.runtime.js bundled
-        # in handlebars-source available.
-        app.assets.append_path(File.expand_path('../', ::Handlebars::Source.bundled_path))
 
         # Allow a local variant override
         ember_path = app.root.join("vendor/assets/ember/#{variant}")
