@@ -20,27 +20,27 @@ module Ember
 
       desc "Install Ember.js into your vendor folder"
       class_option :head,
-        :type => :boolean, 
-        :default => false, 
+        :type => :boolean,
+        :default => false,
         :desc => "Download Ember.js & Ember data from canary channel. This is deprecated. Use channel instead."
       class_option :channel,
         :type => :string,
         :required => false,
         :desc => "Ember release channel Choose between 'release', 'beta' or 'canary'"
-      class_option :ember_only, 
-        :type => :boolean, 
-        :required => false, 
+      class_option :ember_only,
+        :type => :boolean,
+        :required => false,
         :desc => "Only download Ember.",
         :aliases => '--ember'
       class_option :ember_data_only,
-        :type => :boolean, 
-        :required => false, 
-        :desc => "Only download ember-data", 
+        :type => :boolean,
+        :required => false,
+        :desc => "Only download ember-data",
         :aliases => '--ember-data'
       class_option :tag,
         :type => :string,
-        :required => false, 
-        :desc => "Download taged release use syntax v1.0.0-beta.3/ember-data & v1.0.0-rc.8/ember"
+        :required => false,
+        :desc => "Download tagged release use syntax v1.0.0-beta.3/ember-data & v1.0.0-rc.8/ember"
 
       def initialize(args = [], options = {}, config = {})
         super(args, options, config)
@@ -75,8 +75,17 @@ module Ember
 
 
       def get_ember_data_for(environment)
+        # temporarily using a variable here until a stable release of
+        # ember-data is released so that installing with ember-data
+        # *just works*.
+        chan = if channel == :release
+          say_status("warning:", 'Ember Data is not available on the :release channel. Falling back to beta channel.' , :yellow)
+          :beta
+        else
+          channel
+        end
         create_file "vendor/assets/ember/#{environment}/ember-data.js" do
-          fetch "#{base_url}/#{channel}/#{file_name_for('ember-data', environment)}", "vendor/assets/ember/#{environment}/ember-data.js"
+          fetch "#{base_url}/#{chan}/#{file_name_for('ember-data', environment)}", "vendor/assets/ember/#{environment}/ember-data.js"
         end
       end
 
@@ -97,8 +106,8 @@ module Ember
       end
 
       def check_options
-        if options.head? 
-          say('WARNING: --head option is deprecated in favor of --channel=cannary' , :yellow)
+        if options.head?
+          say('WARNING: --head option is deprecated in favor of --channel=canary' , :yellow)
         end
         if options.head? && options.channel?
           say 'ERROR: conflicting options. --head and --channel. Use either --head or --channel=<channel>', :red
@@ -123,7 +132,7 @@ module Ember
       end
 
       def process_options
-        if options.head? 
+        if options.head?
           @channel = :canary
         end
         if options.tag?
@@ -142,7 +151,6 @@ module Ember
           @channel ||= :release
         end
       end
-
 
       def fetch(from, to)
         message = "#{from} -> #{to}"

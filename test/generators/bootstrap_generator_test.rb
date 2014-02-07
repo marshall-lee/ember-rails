@@ -76,8 +76,16 @@ class BootstrapGeneratorTest < Rails::Generators::TestCase
     assert_application_file_modified
   end
 
-  test "modifies `application.js` if require_tree doesn't exist" do
+  test "modifies `application.js` it's empty" do
     File.write(destination_root + '/app/assets/javascripts/application.js', '')
+
+    run_generator
+
+    assert_application_file_modified
+  end
+
+  test "modifies `application.js` if require_tree doesn't exist and there's no new line" do
+    File.write(destination_root + '/app/assets/javascripts/application.js', '//= require jquery')
 
     run_generator
 
@@ -90,6 +98,7 @@ class BootstrapGeneratorTest < Rails::Generators::TestCase
 
       run_generator %w(ember)
       assert_file "#{ember_path}/store.js", /MyApp\.Store/
+      assert_file "#{ember_path}/store.js", /MyApp\.ApplicationAdapter = DS\.ActiveModelAdapter/
       assert_file "#{ember_path}/router.js", /MyApp\.Router\.map/
     ensure
       ::Rails.configuration.ember.app_name = old
@@ -116,7 +125,7 @@ class BootstrapGeneratorTest < Rails::Generators::TestCase
     assert_file application_file, %r{//= require handlebars}
     assert_file application_file, %r{//= require ember}
     assert_file application_file, %r{//= require ember-data}
-    assert_file application_file, %r{//= require #{application_name.underscore}}
+    assert_file application_file, %r{//= require ./#{application_name.underscore}}
   end
 
   def assert_invoked_generators_files(options = {})
